@@ -51,19 +51,30 @@ public class VentanaEditarTarea extends JDialog {
                 campoDescripcion.requestFocus(); 
                 return; 
             }
+            String nuevaPrioridad = (String) comboPrioridad.getSelectedItem();
+            while (nuevaPrioridad == null || (!nuevaPrioridad.equals("Alta") && !nuevaPrioridad.equals("Media") && !nuevaPrioridad.equals("Baja"))) {
+                JOptionPane.showMessageDialog(this, "La prioridad debe ser 'Alta', 'Media' o 'Baja'.", "Error", JOptionPane.ERROR_MESSAGE);
+                nuevaPrioridad = (String) JOptionPane.showInputDialog(this, "Nueva prioridad (Alta, Media, Baja):", tarea.getPrioridad());
+                if (nuevaPrioridad == null) return; 
+            }
+
+            String nuevaFecha = campoFecha.getText();
+            while (nuevaFecha.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La fecha no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+                nuevaFecha = JOptionPane.showInputDialog(this, "Nueva fecha límite (YYYY-MM-DD):", tarea.getFechaLimite().toString());
+                if (nuevaFecha == null) return;
+            }
             try {
-                LocalDate fecha = LocalDate.parse(campoFecha.getText());
+                LocalDate fechaLimite = LocalDate.parse(nuevaFecha);
                 tarea.setTitulo(campoTitulo.getText());
                 tarea.setDescripcion(campoDescripcion.getText());
-                tarea.setPrioridad(comboPrioridad.getSelectedItem().toString());
-                tarea.setFechaLimite(fecha);
+                tarea.setPrioridad(nuevaPrioridad);
+                tarea.setFechaLimite(fechaLimite);
                 tareaEditada = true;
                 dispose();
             } catch (DateTimeParseException ex) {
                 JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.");
-            }catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Error de prioridad", JOptionPane.ERROR_MESSAGE);
-        }
+            }
         });
         add(btnGuardar);
 
@@ -80,3 +91,4 @@ public class VentanaEditarTarea extends JDialog {
         return tarea;
     }
 }
+
