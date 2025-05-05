@@ -48,18 +48,27 @@ public class VentanaCrearTarea extends JDialog {
                 campoDescripcion.requestFocus(); 
                 return; 
             }
+            String prioridad = (String) comboPrioridad.getSelectedItem();
+            while (prioridad == null || (!prioridad.equals("Alta") && !prioridad.equals("Media") && !prioridad.equals("Baja"))) {
+                JOptionPane.showMessageDialog(this, "La prioridad debe ser 'Alta', 'Media' o 'Baja'.", "Error", JOptionPane.ERROR_MESSAGE);
+                prioridad = (String) JOptionPane.showInputDialog(this, "Nueva prioridad (Alta, Media, Baja):", "Prioridad", JOptionPane.PLAIN_MESSAGE);
+                if (prioridad == null) return;  
+            }
+
+            String fecha = campoFecha.getText();
+            while (fecha.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La fecha no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+                fecha = JOptionPane.showInputDialog(this, "Fecha límite (YYYY-MM-DD):");
+                if (fecha == null) return;  
+            }
+
             try {
-                LocalDate fecha = LocalDate.parse(campoFecha.getText());
-                nuevaTarea = new Tarea(
-                        campoTitulo.getText(),
-                        campoDescripcion.getText(),
-                        fecha,
-                        comboPrioridad.getSelectedItem().toString()
-                );
+                LocalDate fechaLimite = LocalDate.parse(fecha);  
+                nuevaTarea = new Tarea(campoTitulo.getText(), campoDescripcion.getText(), fechaLimite, prioridad);
                 tareaCreada = true;
                 dispose();
             } catch (DateTimeParseException ex) {
-                JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.");
+                JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         add(btnCrear);
@@ -77,4 +86,3 @@ public class VentanaCrearTarea extends JDialog {
         return nuevaTarea;
     }
 }
-
