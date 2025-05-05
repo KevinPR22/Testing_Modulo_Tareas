@@ -150,7 +150,7 @@ public class VistaPrincipal extends JFrame {
             gestor.agregarTarea(new Tarea(titulo, descripcion, fechaLimite, prioridad));
             actualizarTabla();
         } catch (DateTimeParseException e) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.");
+            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa DD-MM-YYYY.");
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error de prioridad", JOptionPane.ERROR_MESSAGE);
         }
