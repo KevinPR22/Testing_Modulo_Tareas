@@ -41,6 +41,16 @@ public class VentanaEditarTarea extends JDialog {
 
         JButton btnGuardar = new JButton("Guardar");
         btnGuardar.addActionListener(e -> {
+            while (campoTitulo.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El título no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+                campoTitulo.requestFocus(); 
+                return; 
+            }
+            while (campoDescripcion.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La descripción no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+                campoDescripcion.requestFocus(); 
+                return; 
+            }
             try {
                 LocalDate fecha = LocalDate.parse(campoFecha.getText());
                 tarea.setTitulo(campoTitulo.getText());
@@ -51,7 +61,9 @@ public class VentanaEditarTarea extends JDialog {
                 dispose();
             } catch (DateTimeParseException ex) {
                 JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.");
-            }
+            }catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error de prioridad", JOptionPane.ERROR_MESSAGE);
+        }
         });
         add(btnGuardar);
 
