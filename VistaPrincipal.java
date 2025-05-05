@@ -83,8 +83,35 @@ public class VistaPrincipal extends JFrame {
                 JOptionPane.showMessageDialog(this, "La descripción no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        String prioridad = JOptionPane.showInputDialog(this, "Prioridad (Alta, Media, Baja):");
-        String fecha = JOptionPane.showInputDialog(this, "Fecha límite (YYYY-MM-DD):");
+
+        String prioridad = "";
+        while (true) {
+            prioridad = JOptionPane.showInputDialog(this, "Prioridad (Alta, Media, Baja):");
+            if (prioridad == null) return;  
+            if (prioridad.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La prioridad no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else if (!prioridad.equalsIgnoreCase("Alta") && !prioridad.equalsIgnoreCase("Media") && !prioridad.equalsIgnoreCase("Baja")) {
+                JOptionPane.showMessageDialog(this, "La prioridad debe ser 'Alta', 'Media' o 'Baja'.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                break;  
+            }
+        }
+    
+        String fecha = "";
+        while (true) {
+            fecha = JOptionPane.showInputDialog(this, "Fecha límite (YYYY-MM-DD):");
+            if (fecha == null) return;  
+            if (fecha.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La fecha no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    LocalDate fechaLimite = LocalDate.parse(fecha);  
+                    break; 
+                } catch (DateTimeParseException e) {
+                    JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
         try {
             LocalDate fechaLimite = LocalDate.parse(fecha);
             gestor.agregarTarea(new Tarea(titulo, descripcion, fechaLimite, prioridad));
@@ -95,7 +122,6 @@ public class VistaPrincipal extends JFrame {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error de prioridad", JOptionPane.ERROR_MESSAGE);
         }
     }
-
     private void editarTareaSeleccionada() {
         int fila = tablaTareas.getSelectedRow();
         if (fila == -1) {
@@ -121,9 +147,35 @@ public class VistaPrincipal extends JFrame {
                 JOptionPane.showMessageDialog(this, "La descripción no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        String nuevaPrioridad = JOptionPane.showInputDialog(this, "Nueva prioridad:", tarea.getPrioridad());
-        String nuevaFecha = JOptionPane.showInputDialog(this, "Nueva fecha límite (YYYY-MM-DD):", tarea.getFechaLimite().toString());
-
+        String nuevaPrioridad = "";
+        while (true) {
+            nuevaPrioridad = JOptionPane.showInputDialog(this, "Nueva prioridad:", tarea.getPrioridad());
+            if (nuevaPrioridad == null) return;  
+            if (nuevaPrioridad.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La prioridad no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else if (!nuevaPrioridad.equalsIgnoreCase("Alta") && !nuevaPrioridad.equalsIgnoreCase("Media") && !nuevaPrioridad.equalsIgnoreCase("Baja")) {
+                JOptionPane.showMessageDialog(this, "La prioridad debe ser 'Alta', 'Media' o 'Baja'.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                break;  
+            }
+        }
+   
+        String nuevaFecha = "";
+        while (true) {
+            nuevaFecha = JOptionPane.showInputDialog(this, "Nueva fecha límite (YYYY-MM-DD):", tarea.getFechaLimite().toString());
+            if (nuevaFecha == null) return; 
+            if (nuevaFecha.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La fecha no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    LocalDate fechaLimite = LocalDate.parse(nuevaFecha);  
+                    break; 
+                } catch (DateTimeParseException e) {
+                    JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+ 
         try {
             LocalDate fechaLimite = LocalDate.parse(nuevaFecha);
             gestor.editarTarea(fila, nuevoTitulo, nuevaDescripcion, fechaLimite, nuevaPrioridad);
@@ -131,7 +183,7 @@ public class VistaPrincipal extends JFrame {
         } catch (DateTimeParseException e) {
             JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.");
         } catch (IllegalArgumentException e) {
-        JOptionPane.showMessageDialog(this, e.getMessage(), "Error de prioridad", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error de prioridad", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -206,4 +258,3 @@ public class VistaPrincipal extends JFrame {
         SwingUtilities.invokeLater(() -> new VistaPrincipal().setVisible(true));
     }
 }
-
