@@ -38,11 +38,16 @@ public class VentanaCrearTarea extends JDialog {
 
         JButton btnCrear = new JButton("Crear");
         btnCrear.addActionListener(e -> {
-            if (campoTitulo.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "El título no puede estar vacío.");
-                return;
+            while (campoTitulo.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El título no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+                campoTitulo.requestFocus(); 
+                return; 
             }
-
+            while (campoDescripcion.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La descripción no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
+                campoDescripcion.requestFocus(); 
+                return; 
+            }
             try {
                 LocalDate fecha = LocalDate.parse(campoFecha.getText());
                 nuevaTarea = new Tarea(
@@ -72,3 +77,4 @@ public class VentanaCrearTarea extends JDialog {
         return nuevaTarea;
     }
 }
+
