@@ -97,14 +97,47 @@ public class VistaPrincipal extends JFrame {
             }
         }
     
+        String dia = "";
+        String mes = "";
+        String ano = "";
         String fecha = "";
         while (true) {
-            fecha = JOptionPane.showInputDialog(this, "Fecha límite (YYYY-MM-DD):");
-            if (fecha == null) return;  
-            if (fecha.trim().isEmpty()) {
+            
+            JPanel panel = new JPanel();
+            JTextField campoDia = new JTextField(02);
+            JTextField campoMes = new JTextField(02);
+            JTextField campoAno = new JTextField(04);
+            panel.add(new JLabel("Día:"));
+            panel.add(campoDia);
+            panel.add(new JLabel("Mes:"));
+            panel.add(campoMes);
+            panel.add(new JLabel("Año:"));
+            panel.add(campoAno);
+            
+            int opcion = JOptionPane.showConfirmDialog(null, panel, "Introduce la fecha", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            
+            if (opcion == JOptionPane.CANCEL_OPTION){
+                return;
+            }
+            
+            dia = campoDia.getText();
+            mes = campoMes.getText();
+            ano = campoAno.getText();
+            
+            if (dia == null || mes == null || ano == null) return;  
+            if (dia.trim().isEmpty() || mes.trim().isEmpty() || ano.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "La fecha no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
+            } else  {
                 try {
+                    if(dia.length()==1){
+                        dia = "0" + dia;
+                    }
+                
+                    if(mes.length()==1){
+                        mes = "0" + mes;
+                    }
+                    
+                    fecha = ano + "-" + mes + "-" + dia;
                     LocalDate fechaLimite = LocalDate.parse(fecha);  
                     break; 
                 } catch (DateTimeParseException e) {
