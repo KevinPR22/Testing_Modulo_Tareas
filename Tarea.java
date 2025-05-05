@@ -34,7 +34,7 @@ public class Tarea {
             !prioridad.equalsIgnoreCase("Baja")) {
             throw new IllegalArgumentException("Prioridad inválida solo puede ser Alta, Media o Baja.");
         }
-        this.prioridad = prioridad;
+        this.prioridad = prioridad.substring(0, 1).toUpperCase() + prioridad.substring(1).toLowerCase();
     }
 
     public boolean isCompletada() { return completada; }
