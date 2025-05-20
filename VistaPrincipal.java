@@ -17,22 +17,43 @@ public class VistaPrincipal extends JFrame {
         gestor = new GestorTareas();
         setTitle("Gestor de Tareas");
         setSize(800, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                gestor.guardarTareas();
+                System.exit(0);
+            }
+        });
         setLocationRelativeTo(null);
         inicializarComponentes();
+        actualizarTabla(); 
     }
+
 
     private void inicializarComponentes() {
         setLayout(new BorderLayout());
 
-        // Tabla lo que sale en la parte de arriba
-        modeloTabla = new DefaultTableModel(new Object[]{"Título", "Descripción", "Prioridad", "Fecha Límite", "Estado"}, 0);
+       
+        modeloTabla = new DefaultTableModel(new Object[]{"Título", "Descripción", "Prioridad", "Fecha Límite", "Estado"}, 0) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+   
+
         tablaTareas = new JTable(modeloTabla);
+        tablaTareas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         JScrollPane scrollPane = new JScrollPane(tablaTareas);
         add(scrollPane, BorderLayout.CENTER);
+        // Panel de botones        
+        JPanel panelBotones = new JPanel(new GridLayout(2, 4, 10, 10)); 
 
-        // Panel de botones
-        JPanel panelBotones = new JPanel(new GridLayout(1, 6, 10, 10)); // Añadimos una columna extra para los nuevos botones
         JButton btnAgregar = new JButton("Agregar Tarea");
         JButton btnEditar = new JButton("Editar Tarea");
         JButton btnEliminar = new JButton("Eliminar Tarea");
@@ -53,7 +74,7 @@ public class VistaPrincipal extends JFrame {
         panelBotones.add(btnOrdenarPorPrioridad);
         add(panelBotones, BorderLayout.SOUTH);
 
-        // ActionListeners
+        
         btnAgregar.addActionListener(e -> agregarTarea());
         btnEditar.addActionListener(e -> editarTareaSeleccionada());
         btnEliminar.addActionListener(e -> eliminarTareaSeleccionada());
@@ -69,16 +90,23 @@ public class VistaPrincipal extends JFrame {
     private void agregarTarea() {
         String titulo = "";
         while (titulo.trim().isEmpty()) {
-            titulo = JOptionPane.showInputDialog(this, "Título de la tarea:");
-            if (titulo == null) return;  
+            JTextField campoTitulo = new JTextField();
+            campoTitulo.setDocument(new JTextFieldLimit(20));
+            int opcionTitulo = JOptionPane.showConfirmDialog(this, campoTitulo, "Título de la tarea", JOptionPane.OK_CANCEL_OPTION);
+            if (opcionTitulo != JOptionPane.OK_OPTION) return;
+            titulo = campoTitulo.getText();
             if (titulo.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "El título no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+
         String descripcion = "";
         while (descripcion.trim().isEmpty()) {
-            descripcion = JOptionPane.showInputDialog(this, "Descripción:");
-            if (descripcion == null) return;  
+            JTextField campoDescripcion = new JTextField();
+            campoDescripcion.setDocument(new JTextFieldLimit(50));
+            int opcionDescripcion = JOptionPane.showConfirmDialog(this, campoDescripcion, "Descripción de la tarea", JOptionPane.OK_CANCEL_OPTION);
+            if (opcionDescripcion != JOptionPane.OK_OPTION) return;
+            descripcion = campoDescripcion.getText();
             if (descripcion.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "La descripción no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -128,21 +156,21 @@ public class VistaPrincipal extends JFrame {
             if (dia.trim().isEmpty() || mes.trim().isEmpty() || ano.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "La fecha no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
             } else  {
-                try {
-                    if(dia.length()==1){
-                        dia = "0" + dia;
-                    }
-                
-                    if(mes.length()==1){
-                        mes = "0" + mes;
-                    }
-                    
-                    fecha = ano + "-" + mes + "-" + dia;
-                    LocalDate fechaLimite = LocalDate.parse(fecha);  
-                    break; 
-                } catch (DateTimeParseException e) {
-                    JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+            	try {
+            	    if(dia.length() == 1){
+            	        dia = "0" + dia;
+            	    }
+
+            	    if(mes.length() == 1){
+            	        mes = "0" + mes;
+            	    }
+
+            	    fecha = ano + "-" + mes + "-" + dia;
+            	    LocalDate.parse(fecha);  
+            	    break; 
+            	} catch (DateTimeParseException e) {
+            	    JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+            	}
             }
         }
         try {
@@ -201,8 +229,8 @@ public class VistaPrincipal extends JFrame {
                 JOptionPane.showMessageDialog(this, "La fecha no puede estar vacía.", "Error", JOptionPane.ERROR_MESSAGE);
             } else {
                 try {
-                    LocalDate fechaLimite = LocalDate.parse(nuevaFecha);  
-                    break; 
+                	LocalDate.parse(nuevaFecha);  
+                    break;
                 } catch (DateTimeParseException e) {
                     JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -256,18 +284,25 @@ public class VistaPrincipal extends JFrame {
             });
         }
     }
-    
-
+       
     // Filtrar por prioridad
     private void filtrarPorPrioridad() {
-    	// Esto si desean lo cambiamos revisen 
-        String prioridad = JOptionPane.showInputDialog(this, "Filtrar por prioridad (Alta, Media, Baja) o escribe 'todas' para ver todas:");
+        String prioridad = JOptionPane.showInputDialog(this, 
+            "Filtrar por prioridad (Alta, Media, Baja) o escribe 'todas' para ver todas:");
+
         if (prioridad == null) return;
 
         prioridad = prioridad.trim();
 
         if (prioridad.isEmpty() || prioridad.equalsIgnoreCase("todas")) {
             gestor.restablecerTareas(); // Mostrar todas las tareas
+        } else if (!prioridad.equalsIgnoreCase("Alta") &&
+                !prioridad.equalsIgnoreCase("Media") &&
+                !prioridad.equalsIgnoreCase("Baja")) {
+            JOptionPane.showMessageDialog(this, 
+                "Prioridad inválida. Solo se permite 'Alta', 'Media' o 'Baja'.", 
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         } else {
             gestor.filtrarPorPrioridad(prioridad);
         }
@@ -290,4 +325,22 @@ public class VistaPrincipal extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new VistaPrincipal().setVisible(true));
     }
+} 
+
+class JTextFieldLimit extends javax.swing.text.PlainDocument {
+    private int limite;
+
+    public JTextFieldLimit(int limite) {
+        this.limite = limite;
+    }
+
+    @Override
+    public void insertString(int offset, String str, javax.swing.text.AttributeSet attr) throws javax.swing.text.BadLocationException {
+        if (str == null) return;
+        if ((getLength() + str.length()) <= limite) {
+            super.insertString(offset, str, attr);
+        }
+    }
 }
+
+

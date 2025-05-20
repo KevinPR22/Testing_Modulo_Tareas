@@ -1,90 +1,130 @@
 package ModuloTareas;
 
+import java.io.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GestorTareas {
     private List<Tarea> listaTareas;
     private List<Tarea> listaTareasFiltradas;
+    private static final String ARCHIVO_TAREAS = "tareas.dat";
 
     public GestorTareas() {
         listaTareas = new ArrayList<>();
-        listaTareasFiltradas = new ArrayList<>(listaTareas);
+        cargarTareas();
+        if (listaTareasFiltradas == null) {
+            listaTareasFiltradas = new ArrayList<>(listaTareas);
+        }
     }
 
-    // Agregar nueva tarea
     public void agregarTarea(Tarea tarea) {
-        if (tarea == null) {
-            throw new IllegalArgumentException("La tarea no puede ser null.");
+        if (tarea == null) throw new IllegalArgumentException("La tarea no puede ser null.");
+        if (existeTareaDuplicada(tarea)) {
+            throw new IllegalArgumentException("Ya existe una tarea con el mismo título y descripción.");
         }
         listaTareas.add(tarea);
-        listaTareasFiltradas.add(tarea);  // Añadimos a la lista filtrada también
+        listaTareasFiltradas = new ArrayList<>(listaTareas);
+        guardarTareas();
     }
 
-    // Eliminar tarea
     public void eliminarTarea(Tarea tarea) {
         listaTareas.remove(tarea);
-        listaTareasFiltradas.remove(tarea); // También eliminamos de la lista filtrada
+        listaTareasFiltradas.remove(tarea);
+        guardarTareas();
     }
 
-    // Actualizar tarea (reemplazo completo)
-    public void actualizarTarea(Tarea tareaOriginal, Tarea tareaEditada) {
-        int index = listaTareas.indexOf(tareaOriginal);
-        if (index != -1) {
-            listaTareas.set(index, tareaEditada);
-            listaTareasFiltradas.set(index, tareaEditada); // Actualizamos también en la lista filtrada
-        }
-    }
-
-    // Editar campos de una tarea por índice
     public void editarTarea(int indice, String titulo, String descripcion, LocalDate fecha, String prioridad) {
         if (indice >= 0 && indice < listaTareas.size()) {
-            Tarea t = listaTareas.get(indice);
-            t.setTitulo(titulo);
-            t.setDescripcion(descripcion);
-            t.setFechaLimite(fecha);
-            t.setPrioridad(prioridad);
+            Tarea tareaActual = listaTareas.get(indice);
+            Tarea tareaEditada = new Tarea(titulo, descripcion, fecha, prioridad);
 
-            // También actualizamos la lista filtrada
-            listaTareasFiltradas.set(indice, t);
+            // Si la nueva tarea editada (sin contar esta misma) ya existe, no permitir
+            for (int i = 0; i < listaTareas.size(); i++) {
+                if (i != indice && listaTareas.get(i).equals(tareaEditada)) {
+                    throw new IllegalArgumentException("Ya existe otra tarea con el mismo título y descripción.");
+                }
+            }
+
+            tareaActual.setTitulo(titulo);
+            tareaActual.setDescripcion(descripcion);
+            tareaActual.setFechaLimite(fecha);
+            tareaActual.setPrioridad(prioridad);
+            listaTareasFiltradas.set(indice, tareaActual);
+            guardarTareas();
         }
     }
 
-    // Marcar tarea como completada o pendiente
+    private boolean existeTareaDuplicada(Tarea tarea) {
+        return listaTareas.stream().anyMatch(t -> t.equals(tarea));
+    }
+
     public void marcarComoCompletada(int indice, boolean estado) {
         if (indice >= 0 && indice < listaTareas.size()) {
-            listaTareas.get(indice).setCompletada(estado);
-            listaTareasFiltradas.get(indice).setCompletada(estado); // Actualizamos la lista filtrada
+            Tarea tareaSeleccionada = listaTareasFiltradas.get(indice);
+            for (Tarea t : listaTareas) {
+                if (t == tareaSeleccionada) {
+                    t.setCompletada(estado);
+                    break;
+                }
+            }
+            tareaSeleccionada.setCompletada(estado);
+            guardarTareas();
         }
     }
 
-    // Obtener tareas visibles (ya filtradas si corresponde)
     public List<Tarea> obtenerTareas() {
         return new ArrayList<>(listaTareasFiltradas);
     }
 
-    // Filtrar tareas por prioridad
     public void filtrarPorPrioridad(String prioridad) {
         listaTareasFiltradas = listaTareas.stream()
             .filter(t -> t.getPrioridad().equalsIgnoreCase(prioridad))
             .collect(Collectors.toList());
     }
 
-    // Ordenar tareas por fecha límite
     public void ordenarPorFechaLimite() {
         listaTareasFiltradas.sort(Comparator.comparing(Tarea::getFechaLimite));
     }
 
-    // Ordenar tareas por prioridad
     public void ordenarPorPrioridad() {
-        listaTareasFiltradas.sort(Comparator.comparing(Tarea::getPrioridad));
+        Map<String, Integer> prioridadOrden = new HashMap<>();
+        prioridadOrden.put("Alta", 1);
+        prioridadOrden.put("Media", 2);
+        prioridadOrden.put("Baja", 3);
+
+        listaTareasFiltradas.sort(Comparator.comparingInt(t ->
+            prioridadOrden.getOrDefault(t.getPrioridad(), Integer.MAX_VALUE)
+        ));
     }
 
-    // Restablecer la lista de tareas filtradas
     public void restablecerTareas() {
-        listaTareasFiltradas = new ArrayList<>(listaTareas); // Volver a todas las tareas
+        listaTareasFiltradas = new ArrayList<>(listaTareas);
+    }
+
+    public void guardarTareas() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARCHIVO_TAREAS))) {
+            oos.writeObject(listaTareas);
+        } catch (IOException e) {
+            System.err.println("Error al guardar tareas: " + e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void cargarTareas() {
+        File archivo = new File(ARCHIVO_TAREAS);
+        if (archivo.exists()) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(archivo))) {
+                listaTareas = (List<Tarea>) ois.readObject();
+                listaTareasFiltradas = new ArrayList<>(listaTareas);
+            } catch (IOException | ClassNotFoundException e) {
+                System.err.println("Error al cargar tareas: " + e.getMessage());
+                listaTareas = new ArrayList<>();
+                listaTareasFiltradas = new ArrayList<>();
+            }
+        } else {
+            listaTareas = new ArrayList<>();
+            listaTareasFiltradas = new ArrayList<>();
+        }
     }
 }
